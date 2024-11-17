@@ -34,11 +34,36 @@ const initializeDatabase = async () => {
 initializeDatabase();
 
 app.post('/users', async (req, res) => {
-// Crie o endpoint de users
+  // Crie o endpoint de users
+  const userRepository = AppDataSource.getRepository(User);
+
+  const { firstName, lastName, email } = req.body;
+
+  const user = new User();
+  user.firstName = firstName;
+  user.lastName = lastName;
+  user.email = email;
+
+  await userRepository.save(user); 
+
+  return res.status(200).json(user);
+  
 });
 
 app.post('/posts', async (req, res) => {
-// Crie o endpoint de posts
+  // Crie o endpoint de posts
+  const postRepository = AppDataSource.getRepository(Post);
+
+  const { title, description, userId } = req.body;
+
+  const post = new Post();
+  post.title = title;
+  post.description = description;
+  post.userId = userId;
+
+  await postRepository.save(post); 
+
+  return res.status(200).json({ message: 'Post created successfully' });
 });
 
 const PORT = process.env.PORT || 3000;
