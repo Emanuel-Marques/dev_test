@@ -1,26 +1,16 @@
 import 'reflect-metadata';
 import express from 'express';
 import { DataSource } from 'typeorm';
-import { User } from './entity/User';
-import { Post } from './entity/Post';
+import router from './routes';
+import { AppDataSource } from './data-source';
 
 const app = express();
 app.use(express.json());
 
-const AppDataSource = new DataSource({
-  type: "mysql",
-  host: process.env.DB_HOST || "localhost",
-  port: 3306,
-  username: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "password",
-  database: process.env.DB_NAME || "test_db",
-  entities: [User,Post],
-  synchronize: true,
-});
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const initializeDatabase = async () => {
+const initializeDatabase = async (AppDataSource: DataSource) => {
   await wait(20000);
   try {
     await AppDataSource.initialize();
@@ -31,40 +21,9 @@ const initializeDatabase = async () => {
   }
 };
 
-initializeDatabase();
+initializeDatabase(AppDataSource);
 
-app.post('/users', async (req, res) => {
-  // Crie o endpoint de users
-  const userRepository = AppDataSource.getRepository(User);
-
-  const { firstName, lastName, email } = req.body;
-
-  const user = new User();
-  user.firstName = firstName;
-  user.lastName = lastName;
-  user.email = email;
-
-  await userRepository.save(user); 
-
-  return res.status(200).json(user);
-  
-});
-
-app.post('/posts', async (req, res) => {
-  // Crie o endpoint de posts
-  const postRepository = AppDataSource.getRepository(Post);
-
-  const { title, description, userId } = req.body;
-
-  const post = new Post();
-  post.title = title;
-  post.description = description;
-  post.userId = userId;
-
-  await postRepository.save(post); 
-
-  return res.status(200).json({ message: 'Post created successfully' });
-});
+app.use(router);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
